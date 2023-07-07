@@ -1,9 +1,11 @@
+import os
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
-
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
@@ -29,7 +31,13 @@ def get_data(datapath):
     return data
 
 
-def fill_missing_data(dataframe):
+def get_data_noremove(datapath):
+    """Function to get data"""
+    data = pd.read_csv(datapath)
+    return data
+
+
+def fill_missing_data():
     """Function to fill missing data"""
     # We can use multiple imputation or maximum likelihood estimation to fill in the missing values
     # They use the observed data to estimate the missing values and then use the completed data for analysis
@@ -39,12 +47,11 @@ def fill_missing_data(dataframe):
     data_copy = df.copy(deep=True)
 
     missing_cols = [col for col in df.columns if '_nan' in col]
-    
+
     workclass_cols = [col for col in df.columns if 'workclass' in col]
 
     occupation_cols = [col for col in df.columns if 'occupation' in col]
     native_country_cols = [col for col in df.columns if 'native-country' in col]
-    missing_rows = dataframe[dataframe[missing_cols] == 1]
 
     for col in missing_cols:
         data_copy.loc[data_copy[col] == 1, workclass_cols] = np.nan
@@ -53,18 +60,50 @@ def fill_missing_data(dataframe):
 
     # drop the columns with nan in the name
     data_copy = data_copy.drop(missing_cols, axis=1)
+    # remove workclass_nan, occupation_nan, native-country_nan from the list
+    workclass_cols.remove('workclass_nan')
+    occupation_cols.remove('occupation_nan')
+    native_country_cols.remove('native-country_nan')
 
     # save the dataframe
     data_copy.to_csv('data/encoded/nominal_missing.csv', index=False)
-
-    imp = KNNImputer(n_neighbors=12, weights="uniform")
+    # Uses Euclidean distance to find the nearest neighbors
+    imp = KNNImputer(n_neighbors=200, weights="distance", metric="nan_euclidean")
     # Perform imputation
     filled_data = imp.fit_transform(data_copy)
 
-    # Create a new DataFrame with the imputed values
     filled_df = pd.DataFrame(filled_data, columns=data_copy.columns)
+    filled_df.to_csv('data/encoded/nominal_filled_raw.csv', index=False)
 
-    # show the knn imputed data
+    columnames = [workclass_cols, occupation_cols, native_country_cols]  # List of column indices
+
+    # Use majority voting to fill in the missing values
+    for index, row in filled_df.iterrows():
+        for col in workclass_cols:
+            # print("row: ", index, "col: ", col, 'value: ', row[col])
+            if row[col] != 0 and row[col] != 1:
+                # find the index of the max value
+                max_index = row[columnames[0]].idxmax()
+                # set the cell with max value to 1
+                filled_df.loc[index, max_index] = 1
+                # set the rest of the cells to 0 except the one with max value
+                cols_set_to_zero = [x for x in columnames[0] if x != max_index]
+                filled_df.loc[index, cols_set_to_zero] = 0
+
+        for col in occupation_cols:
+            if row[col] != 0 and row[col] != 1:
+                max_index = row[columnames[1]].idxmax()
+                filled_df.loc[index, max_index] = 1
+                cols_set_to_zero = [x for x in columnames[1] if x != max_index]
+                filled_df.loc[index, cols_set_to_zero] = 0
+
+        for col in native_country_cols:
+            if row[col] != 0 and row[col] != 1:
+                max_index = row[columnames[2]].idxmax()
+                filled_df.loc[index, max_index] = 1
+                cols_set_to_zero = [x for x in columnames[2] if x != max_index]
+                filled_df.loc[index, cols_set_to_zero] = 0
+
     filled_df.to_csv('data/encoded/nominal_filled.csv', index=False)
     return filled_df
 
@@ -104,7 +143,7 @@ def encode_data(dataframe, nominal_vars, ordinal_vars):
     # save the final dataframe
     dataframe.to_csv('data/encoded/census-income-encoded.csv', index=False)
 
-    return dataframe
+    return dataframe, target
 
 
 def handle_numerical_data(datapath):
@@ -124,35 +163,101 @@ def show_graph(data):
     return data
 
 
-def naive_bayes_classifier(train_x, train_y):
+def naive_bayes_classifier(dataframe):
     """Function to train naive bayes classifier"""
+    # Import libraries
 
-    model = GaussianNB()
-    model.fit(train_x, train_y)
-    return model
+    # Split the data into features and target
+    X = dataframe.iloc[1:, :-1]  # All rows except the first one, all columns except the last one
+    y = dataframe.iloc[1:, -1]  # All rows except the first one, the last column
+
+    # Split the data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
+
+    # Create and fit the classifier
+    clf = GaussianNB()
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    # Evaluate the accuracy
+    acc = accuracy_score(y_test, y_pred)
+    print(f"Accuracy of nb: {acc}")
+
+    return clf
 
 
-def ann_classifier(train_x, train_y):
-    model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-    model.fit(train_x, train_y)
-    return model
+def ann_classifier(dataframe):
+    """Function to train artificial neural network classifier"""
+    # Import libraries
+
+    # Split the data into features and target
+    X = dataframe.iloc[1:, :-1]  # All rows except the first one, all columns except the last one
+    y = dataframe.iloc[1:, -1]  # All rows except the first one, the last column
+
+    # Split the data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
+
+    # Create and fit the classifier
+    clf = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000)
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    # Evaluate the accuracy
+    acc = accuracy_score(y_test, y_pred)
+    print(f"Accuracy of ann: {acc}")
+
+    return clf  # Return the trained classifier
 
 
-def logistic_regression_classifier(train_x, train_y):
-    model = LogisticRegression(penalty='l2')
-    model.fit(train_x, train_y)
-    return model
+def logistic_regression_classifier(dataframe):
+    """Function to train logistic regression classifier"""
+    # Import libraries
+
+    # Split the data into features and target
+    X = dataframe.iloc[1:, :-1]  # All rows except the first one, all columns except the last one
+    y = dataframe.iloc[1:, -1]  # All rows except the first one, the last column
+
+    # Split the data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
+
+    # Create and fit the classifier
+    clf = LogisticRegression(max_iter=1000)
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    # Evaluate the accuracy
+    acc = accuracy_score(y_test, y_pred)
+    print(f"Accuracy of lr: {acc}")
+
+    return clf  # Return the trained classifier
 
 
 def run_code():
     """Function to run the code"""
-    dataframe = get_data(TRAIN_DATA_PATH)
-    dataframe_encoded = encode_data(dataframe, NOMINAL_VAR, ORDINAL_VAR)
-    fill_missing_data(dataframe_encoded)
-    # print(dataframe_encoded.head())
-    # Fill missing data
-    # filled_data = fill_missing_data(dataframe_encoded)
-    # test_data = fill_missing_data(TEST_DATA_PATH)
+    # if the combined does not exist run the code
+    if not os.path.exists('data/processed/combined.csv'):
+        dataframe = get_data(TRAIN_DATA_PATH)
+        dataframe_encoded, target = encode_data(dataframe, NOMINAL_VAR, ORDINAL_VAR)
+        nominal_filled = fill_missing_data()
+        ordinal_data = get_data_noremove('data/encoded/ordinal.csv')
+        combined_data = pd.concat([nominal_filled, ordinal_data], axis=1)
+        # add the target column
+        combined_data = pd.concat([combined_data, target], axis=1)
+        print(combined_data.head())
+        # save as csv
+        combined_data.to_csv('data/processed/combined.csv', index=False)
+    else:
+        combined_data = get_data_noremove('data/processed/combined.csv')
+
+    nb_cls = naive_bayes_classifier(combined_data)
+    ann_cls = ann_classifier(combined_data)
+    lr_cls = logistic_regression_classifier(combined_data)
 
 
 run_code()
