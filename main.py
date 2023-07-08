@@ -147,23 +147,6 @@ def encode_data(dataframe, nominal_vars, ordinal_vars):
     return dataframe, target
 
 
-def handle_numerical_data(datapath):
-    """Function to handle numerical data"""
-    # discretize the numerical data
-
-    data = 0
-
-    return data
-
-
-def split_data(data):
-    return data
-
-
-def show_graph(data):
-    return data
-
-
 def naive_bayes_classifier(dataframe):
     """Function to train naive bayes classifier"""
     # Import libraries
@@ -184,13 +167,6 @@ def naive_bayes_classifier(dataframe):
     # Compute the confusion matrix
     cm = confusion_matrix(y_test, y_pred)
 
-    # Compute the mean and variance of the confusion matrix elements
-    mean_cm = np.mean(cm)
-    var_cm = np.var(cm)
-
-    # Compute the f1 score
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-
     # Plot the confusion matrix
     plt.imshow(cm, cmap='Blues')
     plt.title('Confusion matrix for Naive Bayes Classifier')
@@ -201,9 +177,27 @@ def naive_bayes_classifier(dataframe):
 
     # Print the mean, variance and f1 score
     print("<--Naive Bayes Classifier-->")
-    print(f'Mean of confusion matrix: {mean_cm}')
-    print(f'Variance of confusion matrix: {var_cm}')
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    # Compute the variance of the accuracy, precision, recall and f1 score
+    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
+    var_prec = np.var(prec * rec / (prec + rec))
+    var_rec = np.var(rec * (1 - rec))
+    var_f1 = np.var(2 * prec * rec / (prec + rec))
+    # Print the accuracy, precision, recall and f1 score
+    print(f'Accuracy: {acc}')
+    print(f'Precision: {prec}')
+    print(f'Recall: {rec}')
     print(f'F1 score: {f1}')
+
+    # Print the variance of the accuracy, precision, recall and f1 score
+    print(f'Variance of accuracy: {var_acc}')
+    print(f'Variance of precision: {var_prec}')
+    print(f'Variance of recall: {var_rec}')
+    print(f'Variance of f1 score: {var_f1}')
 
     return clf
 
@@ -229,13 +223,6 @@ def ann_classifier(dataframe):
     # Compute the confusion matrix
     cm = confusion_matrix(y_test, y_pred)
 
-    # Compute the mean and variance of the confusion matrix elements
-    mean_cm = np.mean(cm)
-    var_cm = np.var(cm)
-
-    # Compute the f1 score
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-
     # Plot the confusion matrix
     plt.imshow(cm, cmap='Blues')
     plt.title('Confusion matrix for ANN')
@@ -246,9 +233,27 @@ def ann_classifier(dataframe):
 
     # Print the mean, variance and f1 score
     print("<--Artificial Neural Network Classifier-->")
-    print(f'Mean of confusion matrix: {mean_cm}')
-    print(f'Variance of confusion matrix: {var_cm}')
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    # Compute the variance of the accuracy, precision, recall and f1 score
+    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
+    var_prec = np.var(prec * rec / (prec + rec))
+    var_rec = np.var(rec * (1 - rec))
+    var_f1 = np.var(2 * prec * rec / (prec + rec))
+    # Print the accuracy, precision, recall and f1 score
+    print(f'Accuracy: {acc}')
+    print(f'Precision: {prec}')
+    print(f'Recall: {rec}')
     print(f'F1 score: {f1}')
+
+    # Print the variance of the accuracy, precision, recall and f1 score
+    print(f'Variance of accuracy: {var_acc}')
+    print(f'Variance of precision: {var_prec}')
+    print(f'Variance of recall: {var_rec}')
+    print(f'Variance of f1 score: {var_f1}')
 
     return clf  # Return the trained classifier
 
@@ -274,13 +279,6 @@ def logistic_regression_classifier(dataframe):
     # Compute the confusion matrix
     cm = confusion_matrix(y_test, y_pred)
 
-    # Compute the mean and variance of the confusion matrix elements
-    mean_cm = np.mean(cm)
-    var_cm = np.var(cm)
-
-    # Compute the f1 score
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-
     # Plot the confusion matrix
     plt.imshow(cm, cmap='Blues')
     plt.title('Confusion matrix for Logistic Regression')
@@ -291,9 +289,27 @@ def logistic_regression_classifier(dataframe):
 
     # Print the mean, variance and f1 score
     print("<--Logistic Regression-->")
-    print(f'Mean of confusion matrix: {mean_cm}')
-    print(f'Variance of confusion matrix: {var_cm}')
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    # Compute the variance of the accuracy, precision, recall and f1 score
+    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
+    var_prec = np.var(prec * rec / (prec + rec))
+    var_rec = np.var(rec * (1 - rec))
+    var_f1 = np.var(2 * prec * rec / (prec + rec))
+    # Print the accuracy, precision, recall and f1 score
+    print(f'Accuracy: {acc}')
+    print(f'Precision: {prec}')
+    print(f'Recall: {rec}')
     print(f'F1 score: {f1}')
+
+    # Print the variance of the accuracy, precision, recall and f1 score
+    print(f'Variance of accuracy: {var_acc}')
+    print(f'Variance of precision: {var_prec}')
+    print(f'Variance of recall: {var_rec}')
+    print(f'Variance of f1 score: {var_f1}')
 
     return clf  # Return the trained classifier
 
