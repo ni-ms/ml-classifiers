@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
@@ -180,10 +181,29 @@ def naive_bayes_classifier(dataframe):
 
     # Make predictions on the test set
     y_pred = clf.predict(X_test)
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
 
-    # Evaluate the accuracy
-    acc = accuracy_score(y_test, y_pred)
-    print(f"Accuracy of nb: {acc}")
+    # Compute the mean and variance of the confusion matrix elements
+    mean_cm = np.mean(cm)
+    var_cm = np.var(cm)
+
+    # Compute the f1 score
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+
+    # Plot the confusion matrix
+    plt.imshow(cm, cmap='Blues')
+    plt.title('Confusion matrix for Naive Bayes Classifier')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.colorbar()
+    plt.show()
+
+    # Print the mean, variance and f1 score
+    print("<--Naive Bayes Classifier-->")
+    print(f'Mean of confusion matrix: {mean_cm}')
+    print(f'Variance of confusion matrix: {var_cm}')
+    print(f'F1 score: {f1}')
 
     return clf
 
@@ -206,9 +226,29 @@ def ann_classifier(dataframe):
     # Make predictions on the test set
     y_pred = clf.predict(X_test)
 
-    # Evaluate the accuracy
-    acc = accuracy_score(y_test, y_pred)
-    print(f"Accuracy of ann: {acc}")
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+
+    # Compute the mean and variance of the confusion matrix elements
+    mean_cm = np.mean(cm)
+    var_cm = np.var(cm)
+
+    # Compute the f1 score
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+
+    # Plot the confusion matrix
+    plt.imshow(cm, cmap='Blues')
+    plt.title('Confusion matrix for ANN')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.colorbar()
+    plt.show()
+
+    # Print the mean, variance and f1 score
+    print("<--Artificial Neural Network Classifier-->")
+    print(f'Mean of confusion matrix: {mean_cm}')
+    print(f'Variance of confusion matrix: {var_cm}')
+    print(f'F1 score: {f1}')
 
     return clf  # Return the trained classifier
 
@@ -231,9 +271,29 @@ def logistic_regression_classifier(dataframe):
     # Make predictions on the test set
     y_pred = clf.predict(X_test)
 
-    # Evaluate the accuracy
-    acc = accuracy_score(y_test, y_pred)
-    print(f"Accuracy of lr: {acc}")
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+
+    # Compute the mean and variance of the confusion matrix elements
+    mean_cm = np.mean(cm)
+    var_cm = np.var(cm)
+
+    # Compute the f1 score
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+
+    # Plot the confusion matrix
+    plt.imshow(cm, cmap='Blues')
+    plt.title('Confusion matrix for Logistic Regression')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.colorbar()
+    plt.show()
+
+    # Print the mean, variance and f1 score
+    print("<--Logistic Regression-->")
+    print(f'Mean of confusion matrix: {mean_cm}')
+    print(f'Variance of confusion matrix: {var_cm}')
+    print(f'F1 score: {f1}')
 
     return clf  # Return the trained classifier
 
