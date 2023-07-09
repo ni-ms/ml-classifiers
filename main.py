@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -147,6 +148,34 @@ def encode_data(dataframe, nominal_vars, ordinal_vars):
     return dataframe, target
 
 
+def plot_graphs(y_test, y_pred, title):
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+
+    # Plot the confusion matrix
+    plt.imshow(cm, cmap='Blues')
+    plt.title(title)
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.colorbar()
+    plt.show()
+
+    # Print the mean, variance and f1 score
+    print(title)
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
+    # Print the accuracy, precision, recall and f1 score
+    print(f'Accuracy: {acc}')
+    print(f'Precision: {prec}')
+    print(f'Recall: {rec}')
+    print(f'F1 score: {f1}')
+
+    return acc, prec, rec, f1
+
+
 def naive_bayes_classifier(dataframe):
     """Function to train naive bayes classifier"""
     # Import libraries
@@ -164,42 +193,18 @@ def naive_bayes_classifier(dataframe):
 
     # Make predictions on the test set
     y_pred = clf.predict(X_test)
-    # Compute the confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
 
-    # Plot the confusion matrix
-    plt.imshow(cm, cmap='Blues')
-    plt.title('Confusion matrix for Naive Bayes Classifier')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.colorbar()
-    plt.show()
+    acc, prec, recall, f1 = plot_graphs(y_test, y_pred, 'Naive Bayes Classifier')
 
-    # Print the mean, variance and f1 score
-    print("<--Naive Bayes Classifier-->")
+    return acc, prec, recall, f1
 
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    # Compute the variance of the accuracy, precision, recall and f1 score
-    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
-    var_prec = np.var(prec * rec / (prec + rec))
-    var_rec = np.var(rec * (1 - rec))
-    var_f1 = np.var(2 * prec * rec / (prec + rec))
-    # Print the accuracy, precision, recall and f1 score
-    print(f'Accuracy: {acc}')
-    print(f'Precision: {prec}')
-    print(f'Recall: {rec}')
-    print(f'F1 score: {f1}')
 
-    # Print the variance of the accuracy, precision, recall and f1 score
-    print(f'Variance of accuracy: {var_acc}')
-    print(f'Variance of precision: {var_prec}')
-    print(f'Variance of recall: {var_rec}')
-    print(f'Variance of f1 score: {var_f1}')
+def ann_helper(clf, X_test, y_test, X_train, y_train):
+    clf.fit(X_train, y_train)
 
-    return clf
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+    return y_pred
 
 
 def ann_classifier(dataframe):
@@ -214,48 +219,19 @@ def ann_classifier(dataframe):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
 
     # Create and fit the classifier
-    clf = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000)
-    clf.fit(X_train, y_train)
+    clf_1 = MLPClassifier(hidden_layer_sizes=(100,), max_iter=1000)
+    clf_2 = MLPClassifier(hidden_layer_sizes=(100, 100), max_iter=1000)
+    clf_3 = MLPClassifier(hidden_layer_sizes=(100, 100, 100), max_iter=1000)
 
-    # Make predictions on the test set
-    y_pred = clf.predict(X_test)
+    y_pred_1 = ann_helper(clf_1, X_test, y_test, X_train, y_train)
+    y_pred_2 = ann_helper(clf_2, X_test, y_test, X_train, y_train)
+    y_pred_3 = ann_helper(clf_3, X_test, y_test, X_train, y_train)
 
-    # Compute the confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
+    acc1, prec1, recall1, f11 = plot_graphs(y_test, y_pred_1, 'ANN with 1 hidden layer')
+    acc2, prec2, recall2, f12 = plot_graphs(y_test, y_pred_2, 'ANN with 2 hidden layers')
+    acc3, prec3, recall3, f13 = plot_graphs(y_test, y_pred_3, 'ANN with 3 hidden layers')
 
-    # Plot the confusion matrix
-    plt.imshow(cm, cmap='Blues')
-    plt.title('Confusion matrix for ANN')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.colorbar()
-    plt.show()
-
-    # Print the mean, variance and f1 score
-    print("<--Artificial Neural Network Classifier-->")
-
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    # Compute the variance of the accuracy, precision, recall and f1 score
-    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
-    var_prec = np.var(prec * rec / (prec + rec))
-    var_rec = np.var(rec * (1 - rec))
-    var_f1 = np.var(2 * prec * rec / (prec + rec))
-    # Print the accuracy, precision, recall and f1 score
-    print(f'Accuracy: {acc}')
-    print(f'Precision: {prec}')
-    print(f'Recall: {rec}')
-    print(f'F1 score: {f1}')
-
-    # Print the variance of the accuracy, precision, recall and f1 score
-    print(f'Variance of accuracy: {var_acc}')
-    print(f'Variance of precision: {var_prec}')
-    print(f'Variance of recall: {var_rec}')
-    print(f'Variance of f1 score: {var_f1}')
-
-    return clf  # Return the trained classifier
+    return acc1, prec1, recall1, f11, acc2, prec2, recall2, f12, acc3, prec3, recall3, f13
 
 
 def logistic_regression_classifier(dataframe):
@@ -276,42 +252,20 @@ def logistic_regression_classifier(dataframe):
     # Make predictions on the test set
     y_pred = clf.predict(X_test)
 
-    # Compute the confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
+    acc, prec, recall, f1 = plot_graphs(y_test, y_pred, 'Logistic Regression')
 
-    # Plot the confusion matrix
-    plt.imshow(cm, cmap='Blues')
-    plt.title('Confusion matrix for Logistic Regression')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.colorbar()
+    return acc, prec, recall, f1
+
+
+def plot_metrics(classifiers, metric_values, metric_name):
+    plt.figure(figsize=(10, 6))
+    plt.bar(classifiers, metric_values, color='blue')
+    plt.xlabel('Classifiers')
+    plt.ylabel(metric_name)
+    plt.title(f'Classifier vs. {metric_name}')
+    plt.xticks(rotation=45)
+    plt.grid(True)
     plt.show()
-
-    # Print the mean, variance and f1 score
-    print("<--Logistic Regression-->")
-
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    rec = recall_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    f1 = f1_score(y_test, y_pred, labels=[' <=50K', ' >50K'], pos_label=' >50K')
-    # Compute the variance of the accuracy, precision, recall and f1 score
-    var_acc = np.var(clf.predict_proba(X_test), axis=0)[1]
-    var_prec = np.var(prec * rec / (prec + rec))
-    var_rec = np.var(rec * (1 - rec))
-    var_f1 = np.var(2 * prec * rec / (prec + rec))
-    # Print the accuracy, precision, recall and f1 score
-    print(f'Accuracy: {acc}')
-    print(f'Precision: {prec}')
-    print(f'Recall: {rec}')
-    print(f'F1 score: {f1}')
-
-    # Print the variance of the accuracy, precision, recall and f1 score
-    print(f'Variance of accuracy: {var_acc}')
-    print(f'Variance of precision: {var_prec}')
-    print(f'Variance of recall: {var_rec}')
-    print(f'Variance of f1 score: {var_f1}')
-
-    return clf  # Return the trained classifier
 
 
 def run_code():
@@ -331,9 +285,29 @@ def run_code():
     else:
         combined_data = get_data_noremove('data/processed/combined.csv')
 
-    nb_cls = naive_bayes_classifier(combined_data)
-    ann_cls = ann_classifier(combined_data)
-    lr_cls = logistic_regression_classifier(combined_data)
+    nb_acc, nb_prec, nb_recall, nb_f1 = naive_bayes_classifier(combined_data)
+    ann_acc1, ann_prec1, ann_recall1, ann_f11, ann_acc2, ann_prec2, ann_recall2, ann_f12, ann_acc3, ann_prec3, ann_recall3, ann_f13 = ann_classifier(
+        combined_data)
+    lr_acc, lr_prec, lr_recall, lr_f1 = logistic_regression_classifier(combined_data)
+
+    # plot the graphs
+    classifiers = ['Naive Bayes', 'ANN1', 'ANN2', 'ANN3', 'Logistic Regression']
+    accuracy = [nb_acc, ann_acc1, ann_acc2, ann_acc3, lr_acc]
+    precision = [nb_prec, ann_prec1, ann_prec2, ann_prec3, lr_prec]
+    recall = [nb_recall, ann_recall1, ann_recall2, ann_recall3, lr_recall]
+    f1_score = [nb_f1, ann_f11, ann_f12, ann_f13, lr_f1]
+
+    # Plot accuracy
+    plot_metrics(classifiers, accuracy, 'Accuracy')
+
+    # Plot precision
+    plot_metrics(classifiers, precision, 'Precision')
+
+    # Plot recall
+    plot_metrics(classifiers, recall, 'Recall')
+
+    # Plot F1 score
+    plot_metrics(classifiers, f1_score, 'F1 Score')
 
 
 run_code()
