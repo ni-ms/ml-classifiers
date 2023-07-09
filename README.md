@@ -1,2 +1,2 @@
 # ml-classifiers
-Project comparing naive bayes, ann and logistic regression
+Assignment comparing naive bayes, ann and logistic regression
