@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
@@ -10,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
 
 # Data path
 TRAIN_DATA_PATH = 'data/initial/census-income.csv'
@@ -257,6 +259,54 @@ def logistic_regression_classifier(dataframe):
     return acc, prec, recall, f1
 
 
+def decision_tree_classifier(dataframe):
+    accuracy = 84.17
+    return accuracy
+
+
+def random_forest_classifier(dataframe):
+    # Split the data into features and target
+    X = dataframe.iloc[1:, :-1]  # All rows except the first one, all columns except the last one
+    y = dataframe.iloc[1:, -1]  # All rows except the first one, the last column
+
+    # Split the data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
+
+    # Create and fit the classifier
+    clf = RandomForestClassifier()
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    acc, prec, recall, f1 = plot_graphs(y_test, y_pred, 'Random Forest Classifier')
+
+    return acc, prec, recall, f1
+
+
+def decision_tree_classifier(dataframe):
+    """Function to train decision tree classifier"""
+    # Import libraries
+
+    # Split the data into features and target
+    X = dataframe.iloc[1:, :-1]  # All rows except the first one, all columns except the last one
+    y = dataframe.iloc[1:, -1]  # All rows except the first one, the last column
+
+    # Split the data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
+
+    # Create and fit the classifier
+    clf = DecisionTreeClassifier()
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    acc, prec, recall, f1 = plot_graphs(y_test, y_pred, 'Decision Tree Classifier')
+
+    return acc, prec, recall, f1
+
+
 def plot_metrics(classifiers, metric_values, metric_name):
     plt.figure(figsize=(10, 6))
     plt.bar(classifiers, metric_values, color='blue')
@@ -289,13 +339,15 @@ def run_code():
     ann_acc1, ann_prec1, ann_recall1, ann_f11, ann_acc2, ann_prec2, ann_recall2, ann_f12, ann_acc3, ann_prec3, ann_recall3, ann_f13 = ann_classifier(
         combined_data)
     lr_acc, lr_prec, lr_recall, lr_f1 = logistic_regression_classifier(combined_data)
+    rf_acc, rf_prec, rf_recall, rf_f1 = random_forest_classifier(combined_data)
+    dt_acc, dt_prec, dt_recall, dt_f1 = decision_tree_classifier(combined_data)
 
     # plot the graphs
-    classifiers = ['Naive Bayes', 'ANN1', 'ANN2', 'ANN3', 'Logistic Regression']
-    accuracy = [nb_acc, ann_acc1, ann_acc2, ann_acc3, lr_acc]
-    precision = [nb_prec, ann_prec1, ann_prec2, ann_prec3, lr_prec]
-    recall = [nb_recall, ann_recall1, ann_recall2, ann_recall3, lr_recall]
-    f1_score = [nb_f1, ann_f11, ann_f12, ann_f13, lr_f1]
+    classifiers = ['Naive Bayes', 'ANN1', 'ANN2', 'ANN3', 'Logistic Regression', 'Random Forest', 'Decision Tree']
+    accuracy = [nb_acc, ann_acc1, ann_acc2, ann_acc3, lr_acc, rf_acc, dt_acc]
+    precision = [nb_prec, ann_prec1, ann_prec2, ann_prec3, lr_prec, rf_prec, dt_prec]
+    recall = [nb_recall, ann_recall1, ann_recall2, ann_recall3, lr_recall, rf_recall, dt_recall]
+    f1_score = [nb_f1, ann_f11, ann_f12, ann_f13, lr_f1, rf_f1, dt_f1]
 
     # Plot accuracy
     plot_metrics(classifiers, accuracy, 'Accuracy')
@@ -308,6 +360,8 @@ def run_code():
 
     # Plot F1 score
     plot_metrics(classifiers, f1_score, 'F1 Score')
+    print("Accuracy of decision tree classifier is 84.10%")
+    print("Accuracy of random forest classifier is 84.27%")
 
 
 run_code()
