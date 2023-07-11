@@ -72,7 +72,7 @@ def fill_missing_data():
     # save the dataframe
     data_copy.to_csv('data/encoded/nominal_missing.csv', index=False)
     # Uses Euclidean distance to find the nearest neighbors
-    imp = KNNImputer(n_neighbors=200, weights="distance", metric="nan_euclidean")
+    imp = KNNImputer(n_neighbors=201, weights="distance", metric="nan_euclidean")
     # Perform imputation
     filled_data = imp.fit_transform(data_copy)
 
@@ -221,9 +221,10 @@ def ann_classifier(dataframe):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.67, random_state=42)
 
     # Create and fit the classifier
-    clf_1 = MLPClassifier(hidden_layer_sizes=(100,), max_iter=1000)
-    clf_2 = MLPClassifier(hidden_layer_sizes=(100, 100), max_iter=1000)
-    clf_3 = MLPClassifier(hidden_layer_sizes=(100, 100, 100), max_iter=1000)
+
+    clf_1 = MLPClassifier(hidden_layer_sizes=(100,), max_iter=1000, activation='logistic')
+    clf_2 = MLPClassifier(hidden_layer_sizes=(100, 100), max_iter=1000, activation='logistic')
+    clf_3 = MLPClassifier(hidden_layer_sizes=(100, 100, 100), max_iter=1000, activation='logistic')
 
     y_pred_1 = ann_helper(clf_1, X_test, y_test, X_train, y_train)
     y_pred_2 = ann_helper(clf_2, X_test, y_test, X_train, y_train)
@@ -257,11 +258,6 @@ def logistic_regression_classifier(dataframe):
     acc, prec, recall, f1 = plot_graphs(y_test, y_pred, 'Logistic Regression')
 
     return acc, prec, recall, f1
-
-
-def decision_tree_classifier(dataframe):
-    accuracy = 84.17
-    return accuracy
 
 
 def random_forest_classifier(dataframe):
